@@ -1,0 +1,107 @@
+# AGENTS.template
+
+## Project Overview
+
+[Describe the project in 2-4 lines: purpose, runtime, and boundaries.]
+
+## Tech Stack
+
+- [Language/runtime]
+- [Framework]
+- [LLM/API client]
+- [Package manager]
+- [Lint/test toolchain]
+- [Storage location]
+
+## Working Directories
+
+- `bot/`: [purpose]
+- `agent/`: [purpose]
+- `llm/`: [purpose]
+- `tools/`: [purpose]
+- `tests/`: [purpose]
+- `TODO/`: hierarchical task backlog
+
+## Core Commands
+
+```bash
+# Install dependencies
+[install command]
+
+# Run app
+[run command]
+
+# Run tests
+[test command]
+
+# Lint/format hooks
+[lint/format command]
+```
+
+## Engineering Rules
+
+- Use `uv` as the required package manager for dependency install, run commands, and tooling execution.
+- Keep `pre-commit` installed and configured in every repo instance generated from this template.
+- Configure pre-commit to run:
+  - baseline hygiene hooks (merge conflict checks, whitespace/EOF normalization, YAML/TOML validation, debug statement checks)
+  - formatter/linter hooks
+  - full test suite (`uv run pytest tests/`) before commit
+- Use commit messages with:
+  - a short subject line
+  - an empty line between the short subject and detailed body
+  - a detailed body describing what changed and why
+- For milestone commits (especially day0/dayN completion), always include a detailed commit body after the short subject.
+- Keep tool-facing schemas strict and validated before execution.
+- Keep file operations sandboxed to the configured project root.
+- Use type hints for all function signatures.
+- Keep modules small and composable.
+- Add or update tests for behavior changes.
+- Prefer incremental changes that fit in one working session.
+
+## Test-Based Codex Workflow
+
+For each selected TODO task, execute steps in this exact order:
+
+1. Discuss with user which tests are best suited for the planned changes.
+2. Write `TODO_TEST_PLAN.md` in the same TODO folder.
+3. Implement the agreed tests first.
+4. Start implementation phase by discussing TODO plan with user.
+5. Write `TODO_PLAN.md` in the same TODO folder.
+6. Mark task status as `in_progress` when step 3-5 begin.
+7. Implement the approved plan.
+8. After each completed plan paragraph/section, call a lightweight subagent (nano model) to append/update `TODO_REPORT.md` with what changed.
+9. After all plan items are done, call a lightweight subagent (mini model) to write `TODO_REPORT_SUMMARY.md`.
+10. Run relevant tests and checks.
+11. Mark task status as `finished` only after implementation, tests/checks, and summary are complete.
+
+If a subagent is unavailable in the current runtime, perform the same reporting steps directly and note that fallback in the report.
+
+## TODO Conventions
+
+- Root task format: `TODO/{date_or_day_spec}-{task_name_with_underscores}-{status}/`
+- Allowed status literals: `tbd`, `in_progress`, `finished`
+- Status meaning:
+  - `tbd`: task defined but implementation phase not started
+  - `in_progress`: implementation phase started; TODO plan is being discussed/written and execution is ongoing
+  - `finished`: implementation complete, tests/checks complete, report summary complete
+- `finished` task folders are historical records and must never be deleted.
+- Each task folder contains:
+  - `TODO.md` (required)
+  - `TODO_TEST_PLAN.md` (required before `TODO_PLAN.md`)
+  - `TODO_PLAN.md` (required when status becomes `in_progress`)
+  - `TODO_REPORT.md` (required during implementation)
+  - `TODO_REPORT_SUMMARY.md` (required when status becomes `finished`)
+  - `subtasks/` (optional hierarchical child TODOs)
+- Child TODOs inside `subtasks/` follow the same structure and naming format as `./TODO` root tasks.
+- Each `TODO.md` must keep the same XML-tag structure:
+  - `<context>`
+  - `<goal>` with `<short_term>`, `<medium_term>`, `<long_term>`
+  - `<overall_todo>`
+  - `<task>`
+- Scope each TODO to one session and one clear deliverable.
+
+## Security Boundary
+
+- Default mode is local-only.
+- Filesystem tools must deny path traversal and any access outside sandbox root.
+- Remote/third-party execution must be explicit opt-in and visibly indicated.
