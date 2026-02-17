@@ -1,107 +1,81 @@
-# AGENTS.template
+# AGENTS.template — Fast Repo Agentic Initialization Guide
+Use this document as an *operator’s guide* for Codex / OpenCode / Claude Code / any agent to quickly generate a high-quality `AGENTS.md` and/or `CLAUDE.md` for a new repository.
 
-## Project Overview
+This is intentionally repo-agnostic. Replace placeholders with facts discovered from the repo and from the user.
 
-[Describe the project in 2-4 lines: purpose, runtime, and boundaries.]
+---
 
-## Tech Stack
+## Goal
+Produce a repo-specific **agent instruction file** (`AGENTS.md` and/or `CLAUDE.md`) that enables:
+- fast onboarding (how to run, test, and change the project),
+- safe operation (boundaries, secrets, sandboxing),
+- consistent delivery (workflow + quality gates).
 
-- [Language/runtime]
-- [Framework]
-- [LLM/API client]
-- [Package manager]
-- [Lint/test toolchain]
-- [Storage location]
+### Output targets
+- **`AGENTS.md`**: general agent + contributor workflow, repo conventions, safety, quality gates.
+- **`CLAUDE.md`** (optional): Claude Code–specific “operating manual” (commands, environment, do/don’t, test workflow).  
+  If both exist, keep them consistent; make them 'aware' of each other.
 
-## Working Directories
+---
 
-- `bot/`: [purpose]
-- `agent/`: [purpose]
-- `llm/`: [purpose]
-- `tools/`: [purpose]
-- `tests/`: [purpose]
-- `TODO/`: hierarchical task backlog
+## Fast Initialization Workflow (do this in order)
 
-## Core Commands
+### Step 1 — Ask the user the minimum set of questions (2–5 minutes)
+Collect only what cannot be reliably inferred from the repo:
+
+1) **What are we building and for whom?** (1–2 sentences)  
+2) **What is “done” for agent work?**  
+   - e.g., “PR-ready with tests passing”, “just a patch file”, “no behavior changes without approval”.
+3) **Any hard constraints?**
+   - languages/versions locked, no network access, no Docker, offline mode, etc.
+4) **Security/compliance requirements?**
+   - PII, secrets, audit logs, data retention, export controls.
+5) **Preferred workflow?**
+   - trunk-based vs branches, commit style, changelog requirements, etc.
+
+If user doesn’t know: propose defaults and explicitly mark them as assumptions in the draft.
+
+---
+
+### Step 2 — Scan the repository to extract facts (5–15 minutes)
+Derive the “truth” from files. Prioritize:
+
+**A) How to run**
+- Look for: `README*`, `docs/`, `Makefile`, `Taskfile.yml`, `justfile`
+- Also: `package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, `Dockerfile`, `compose.yml`
+
+**B) How to test & check**
+- CI configs: `.github/workflows/*`, `.gitlab-ci.yml`, etc.
+- Lint/type/format configs: `.pre-commit-config.yaml`, `ruff.toml`, `.eslintrc*`, `mypy.ini`, `.editorconfig`, etc.
+
+**C) Project structure**
+- Identify “core” directories (source, tools, tests, docs, schemas, migrations)
+
+**D) Runtime constraints**
+- Version files: `.python-version`, `.nvmrc`, `.tool-versions`, `runtime.txt`
+- Containerization and deployment configs
+
+Record findings as bullet notes while scanning; you’ll paste them into the final doc.
+
+---
+
+### Step 3 — Normalize into a single “Core Commands” set (critical)
+Your output must include commands that work for a new contributor on a clean checkout.
+
+Try to produce these canonical commands:
 
 ```bash
 # Install dependencies
-[install command]
+...
 
-# Run app
-[run command]
+# Run (app/service/cli)
+...
 
 # Run tests
-[test command]
+...
 
-# Lint/format hooks
-[lint/format command]
-```
+# Lint/format/type-check (or “check”)
+...
 
-## Engineering Rules
-
-- Use `uv` as the required package manager for dependency install, run commands, and tooling execution.
-- Keep `pre-commit` installed and configured in every repo instance generated from this template.
-- Configure pre-commit to run:
-  - baseline hygiene hooks (merge conflict checks, whitespace/EOF normalization, YAML/TOML validation, debug statement checks)
-  - formatter/linter hooks
-  - full test suite (`uv run pytest tests/`) before commit
-- Use commit messages with:
-  - a short subject line
-  - an empty line between the short subject and detailed body
-  - a detailed body describing what changed and why
-- For milestone commits (especially day0/dayN completion), always include a detailed commit body after the short subject.
-- Keep tool-facing schemas strict and validated before execution.
-- Keep file operations sandboxed to the configured project root.
-- Use type hints for all function signatures.
-- Keep modules small and composable.
-- Add or update tests for behavior changes.
-- Prefer incremental changes that fit in one working session.
-
-## Test-Based Codex Workflow
-
-For each selected TODO task, execute steps in this exact order:
-
-1. Discuss with user which tests are best suited for the planned changes.
-2. Write `TODO_TEST_PLAN.md` in the same TODO folder.
-3. Implement the agreed tests first.
-4. Start implementation phase by discussing TODO plan with user.
-5. Write `TODO_PLAN.md` in the same TODO folder.
-6. Mark task status as `in_progress` when step 3-5 begin.
-7. Implement the approved plan.
-8. After each completed plan paragraph/section, call a lightweight subagent (nano model) to append/update `TODO_REPORT.md` with what changed.
-9. After all plan items are done, call a lightweight subagent (mini model) to write `TODO_REPORT_SUMMARY.md`.
-10. Run relevant tests and checks.
-11. Mark task status as `finished` only after implementation, tests/checks, and summary are complete.
-
-If a subagent is unavailable in the current runtime, perform the same reporting steps directly and note that fallback in the report.
-
-## TODO Conventions
-
-- Root task format: `TODO/{date_or_day_spec}-{task_name_with_underscores}-{status}/`
-- Allowed status literals: `tbd`, `in_progress`, `finished`
-- Status meaning:
-  - `tbd`: task defined but implementation phase not started
-  - `in_progress`: implementation phase started; TODO plan is being discussed/written and execution is ongoing
-  - `finished`: implementation complete, tests/checks complete, report summary complete
-- `finished` task folders are historical records and must never be deleted.
-- Each task folder contains:
-  - `TODO.md` (required)
-  - `TODO_TEST_PLAN.md` (required before `TODO_PLAN.md`)
-  - `TODO_PLAN.md` (required when status becomes `in_progress`)
-  - `TODO_REPORT.md` (required during implementation)
-  - `TODO_REPORT_SUMMARY.md` (required when status becomes `finished`)
-  - `subtasks/` (optional hierarchical child TODOs)
-- Child TODOs inside `subtasks/` follow the same structure and naming format as `./TODO` root tasks.
-- Each `TODO.md` must keep the same XML-tag structure:
-  - `<context>`
-  - `<goal>` with `<short_term>`, `<medium_term>`, `<long_term>`
-  - `<overall_todo>`
-  - `<task>`
-- Scope each TODO to one session and one clear deliverable.
-
-## Security Boundary
-
-- Default mode is local-only.
-- Filesystem tools must deny path traversal and any access outside sandbox root.
-- Remote/third-party execution must be explicit opt-in and visibly indicated.
+# CI-equivalent (optional but recommended)
+...
